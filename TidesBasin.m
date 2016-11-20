@@ -37,9 +37,8 @@ clc;
 
 
 deltaT=100;              % time step in seconds. Choose appropriate time step yourself based on Courant number. 
-deltaX=1000;             % spatial step in meters
-% Lbasin=2.15e5;           % Length of the basin or estuary in meters
-Lbasin=50e3;           % Length of the basin or estuary in meters
+deltaX=2500;             % spatial step in meters
+Lbasin=2.15e5;           % Length of the basin or estuary in meters
 Lb=4e4;                  % e-folding length scale for width.
 B0=5e3;                  % Width of the basin in meters at seaward side.
 H0=5.8;                  % Depth of basin.
@@ -257,26 +256,21 @@ TP=trapz(time(end-Nsteps:end),abs(Q(2,end-Nsteps:end)))/2;      % this calculate
 
 %%
 figure;
-figsize = [0 0 5.9 3];     % set figure size to 5.9 inch x 2.95 inch = 15 cm x 7.5 cm
-set(gcf,'PaperOrientation','portrait','PaperUnits','inches' ,'PaperPosition',figsize);
 subplot(4,1,1);
 plot(x,0.5.*B,'b-')
 hold on;
 plot(x,-0.5.*B,'b-')
+% axis equal;
 grid on;
-title('Channel layout')
 subplot(4,1,2);
 plot(x(1:end-1),Z0)
 hold on;
 grid on;
-title('Mean water level')
 subplot(4,1,3);
 plot(x(1:end-1),ZM2)
 hold on;
 grid on;
-title('Amplitude M2 tide')
 subplot(4,1,4);
 plot(x(1:end-1),salmean)
 hold on;
 grid on;
-title('Salinity')

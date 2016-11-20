@@ -257,7 +257,7 @@ TP=trapz(time(end-Nsteps:end),abs(Q(2,end-Nsteps:end)))/2;      % this calculate
 
 %%
 figure;
-figsize = [0 0 5.9 3];     % set figure size to 5.9 inch x 2.95 inch = 15 cm x 7.5 cm
+figsize = [0 0 5.9 5.9];     % set figure size to 5.9 inch x 2.95 inch = 15 cm x 7.5 cm
 set(gcf,'PaperOrientation','portrait','PaperUnits','inches' ,'PaperPosition',figsize);
 subplot(4,1,1);
 plot(x,0.5.*B,'b-')
@@ -279,4 +279,7 @@ subplot(4,1,4);
 plot(x(1:end-1),salmean)
 hold on;
 grid on;
-title('Salinity')
+title('Salinity');
+text(1,0,['\copyright Utrecht University ',datestr(now,10)],'fontsize',6,'rotation',90,'unit','n','ver','t');  % add ARCADIS copyright
+annotation('textbox',[1,0.0,0,0],'string',[addslash([mfilename])],'fontsize',4,'horizontalalignment','right','verticalalignment','baseline','color',[0.5 0.5 0.5]);  % add script name
+print('-dpng','-r300',['TidalChannel_Le',num2str(Lb)])  % print figure at 300 dpi

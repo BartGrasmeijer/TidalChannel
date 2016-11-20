@@ -36,21 +36,29 @@ clc;
 %**************************************************************************
 
 
-deltaT=100;              % time step in seconds. Choose appropriate time step yourself based on Courant number. 
-deltaX=2500;             % spatial step in meters
-Lbasin=2.15e5;           % Length of the basin or estuary in meters
-Lb=4e4;                  % e-folding length scale for width.
-B0=5e3;                  % Width of the basin in meters at seaward side.
-H0=5.8;                  % Depth of basin.
-M2amp=1;                 % Amplitude of M2 tide at seaward side.
-discharge=0;             % Constant river discharge at landward boundary. 
-Cd=2.5e-3;               % Drag coefficient
+deltaT=60;              % time step in seconds. Choose appropriate time step yourself based on Courant number.
+deltaX=1000;             % spatial step in meters
+% Lbasin=2.15e5;           % Length of the basin or estuary in meters
+Lbasin=300e3;           % Length of the basin or estuary in meters
+% Lb=2e4;                  % e-folding length scale for width.
+Lb = 200e4;                  % e-folding length scale for width.
+Ld = 100e4;                  % e-folding length scale for depth.
+% B0=5e3;                  % Width of the basin in meters at seaward side.
+B0=500;                  % Width of the basin in meters at seaward side.
+% H0=5.8;                  % Depth of basin.
+H0=15;                  % Depth of basin.
+M2amp=0.75;                 % Amplitude of M2 tide at seaward side.
+discharge=1500;             % Constant river discharge at landward boundary.
+% Cd=2.5e-3;               % Drag coefficient
+Cd= 10e-3;
 
 Do = 1500;              % Dispersion coefficient at mouth (range of 500 to 1500 )
 So = 25;                % Salinity at mouth (kg/m3)
 Tlws = 0;               % Time at which low water slack occurs (see tidal velocity plot)
 
 g = 9.81;               % acceleration of gravity (m/s^2)
+
+computetransport = false;
 
 %**************************************************************************
 %**************************************************************************
@@ -60,13 +68,14 @@ g = 9.81;               % acceleration of gravity (m/s^2)
 
 
 Tm2=12*3600+25*60;      % M2 tidal period in seconds
-time=0:deltaT:15*Tm2;    % time in seconds
+% time=0:deltaT:15*Tm2;    % time in seconds
+time=0:deltaT:30*Tm2;    % time in seconds
 Nt=length(time);
 
 
 
 %Define frequencies to be analysed. To determine the amplitudes and phase
-%use the code you designed in the first Matlab exercise. 
+%use the code you designed in the first Matlab exercise.
 
 global wn
 
@@ -77,12 +86,20 @@ wn(3)=3*wn(1);
 x=0:deltaX:Lbasin;
 Nx=length(x);
 
-B(1:Nx)=B0*exp(-x/Lb);
-%B(1:Nx)=B0;                % when basin width has to be constant.
+% B(1:Nx)=B0*exp(-x/Lb);
+B(1:Nx)=B0;                % when basin width has to be constant.
+% H(1:Nx)=H0*exp(-x/Ld);
 H(1:Nx)=H0;
+H(x<20000) = 16;
+H(x>=20000&x<30000) = 14.5;
+H(x>=30000&x<35000) = 12;
+H(x>=35000&x<40000) = 8;
+% H(x>=40000) = 8;%8-(x(x>=40000)-40000).*0.5e-4;
+H(x>=40000) = 8-(x(x>=40000)-40000).*0.3e-4;
 
+% H(1:Nx)=H0;
 
-Z=zeros(Nx-1,Nt);           % Z points shifted half a grid point to the right with respect to Q points. we start with Q point, therefore 1 Z point less than Q points.      
+Z=zeros(Nx-1,Nt);           % Z points shifted half a grid point to the right with respect to Q points. we start with Q point, therefore 1 Z point less than Q points.
 Q=zeros(Nx,Nt);
 A=(B.*H)'*ones(1,Nt);       % A at Q points
 P=B'*ones(1,Nt);            % Wetted perimeter at Q points.
@@ -92,9 +109,24 @@ Fric=zeros(Nx,Nt);
 
 myHm0(1:Nt) = 0.001;          % wave height;
 
+%%
+figure;
+subplot(2,1,1);
+plot(x,-H);
+grid on;
+xlim([0 50000]);
+subplot(2,1,2)
+plot(x,A(:,1));
+xlim([0 50000]);
+%%
+
 
 % Boundary conditions
-Z(1,:)=M2amp*sin(2*pi*time/Tm2);          % prescribed water levels
+% Z(1,:)=M2amp*sin(2*pi*time/Tm2);          % prescribed water levels
+load('c:\Users\grasmeijerb\Documents\anaconda\CoastalEngineeringTools\TidalChannel\tidal_predictions_from_rws_getij_nl.mat');
+mytime = (tide.datenum-tide.datenum(1)).*24*3600;
+myz = tide.zwl;
+Z(1,:) = interp1(mytime,myz,time);
 Q(Nx,:)=-discharge;                      % river discharge; most often river discharge is taken zero.
 
 %%
@@ -105,7 +137,7 @@ plot(time,Z(1,:));
 courant=sqrt(9.8*max(H))*deltaT/deltaX;
 
 % For numerical part, follow thesis of Speer (1984). Staggered grid. Z points shifted half deltaX to
-% the right of U points: 
+% the right of U points:
 % Q1 Z1 Q2 Z2 ........ ZN QN+1
 
 % solve Bdz/dt + dQ/dx=0
@@ -182,26 +214,8 @@ for px=1:Nx-1
     phaseUM4(px)=atan2(coefout(3),coefout(6));
     phaseUM6(px)=atan2(coefout(4),coefout(7));
     
-
-    %% initialize tsand input
-    mydatenum = time./(24.*3600);
-    a = 0.10;                                                                  % reference level (m)
-    D50 = 0.00025;
-    D90 = 0.0020;
-    nrofsigmalevels = 20;
-    h = (H(px)+Z(px,:));                                 % depth (m)
-    zbedt = 0-h;                                                               % bed level relative to reference
-    salt = 25.*ones(size(h));                                                  % salinity (ppt);
-    Up = U(px,:);                                             % velocity (m/s)
-    kscvel = 1;                                                                 % current-related roughness (effective roughness) for velocity profile (m)
-    
-    psand = 0.98;
-    pmud = 0.02;
-    pgravel = 0;
-    
-
-    C = 18.*log10(12.*h./kscvel);
-    fc = 8.*g./C.^2;
+%     disp('computing horizontal salinity gradient...')
+    h = (H(px)+Z(px,:));                                                    % depth (m)
     if x(px)<0
         sal = So;
     else if x(px)-0.5*Le+0.5*Le*cos(2.*pi./Tm2.*(time-Tlws))-Lsmin<0
@@ -212,65 +226,100 @@ for px=1:Nx-1
         end
     end
     
-    zt = NaN(length(mydatenum),nrofsigmalevels);
-    zi = 1:1:nrofsigmalevels;                                                   % sigma levels
-    disp('creating z...')
-    for i = 1:length(h)
-        multiWaitbar( 'creating z', i/length(h) );
-        zt(i,1) = a;
-        zt(i,2:end) = a.*(h(i)./a).^(zi(2:end)./(length(zi)));
-        dz(i,:) = gradient(zt(i,:));
+    if computetransport
+        
+        %% initialize tsand input
+        mydatenum = time./(24.*3600);
+        a = 0.10;                                                               % reference level (m)
+        D50 = 0.00025;
+        D90 = 0.0020;
+        nrofsigmalevels = 20;
+        zbedt = 0-h;                                                            % bed level relative to reference
+        salt = 25.*ones(size(h));                                               % salinity (ppt);
+        Up = U(px,:);                                                           % velocity (m/s)
+        kscvel = 1;                                                             % current-related roughness (effective roughness) for velocity profile (m)
+        
+        psand = 0.98;
+        pmud = 0.02;
+        pgravel = 0;
+        
+        
+        zt = NaN(length(mydatenum),nrofsigmalevels);
+        zi = 1:1:nrofsigmalevels;                                                   % sigma levels
+        disp('creating z levels (sigma)...')
+        for i = 1:length(h)
+            multiWaitbar( 'creating z (sigma)', i/length(h) );
+            zt(i,1) = a;
+            zt(i,2:end) = a.*(h(i)./a).^(zi(2:end)./(length(zi)));
+            dz(i,:) = gradient(zt(i,:));
+        end
+        
+        disp('Creating velocity profiles...')
+        C = 18.*log10(12.*h./kscvel);
+        fc = 8.*g./C.^2;
+        for i = 1:length(Up)
+            U1t(i,:) = Up(i)./(-1+log(h(i)/(0.033*kscvel))).*log(zt(i,:)./(0.033.*kscvel));
+        end
+        
+        zvelt = -zt;
+        V1t = zeros(size(U1t));
+        
+        disp('running tsand...')
+        [qtotsandx,qtotsandy, qssandxVRadjust, qssandyVRadjust, z, Uz, Vz, csand, qssandx, qssandy, cmud, qmudxtot] = tsand('Times',mydatenum','Hs',myHm0','U1',U1t,...
+            'V1',V1t,'zvel',zvelt,...
+            'zbedt',zbedt','d',h',...
+            'salt',sal','D50',D50,'D90',D90,...
+            'psand',psand,'pmud',pmud,'pgravel',pgravel);
+        
+        %     figure;
+        %     plot(time,U(px,:))
+        %
+        %     figure;
+        %     plot(time,sal);
+        %     grid on;
+        %
+        %     figure;
+        %     plot(time,qtotsandx);
     end
-    
-    disp('Creating velocity profiles...')
-    for i = 1:length(Up)
-        U1t(i,:) = Up(i)./(-1+log(h(i)/(0.033*kscvel))).*log(zt(i,:)./(0.033.*kscvel));
-    end
-    
-    zvelt = -zt;
-    V1t = zeros(size(U1t));
-
-    disp('running tsand...')
-    [qtotsandx,qtotsandy, qssandxVRadjust, qssandyVRadjust, z, Uz, Vz, csand, qssandx, qssandy, cmud, qmudxtot] = tsand('Times',mydatenum','Hs',myHm0','U1',U1t,...
-        'V1',V1t,'zvel',zvelt,...
-        'zbedt',zbedt','d',h',...
-        'salt',sal','D50',D50,'D90',D90,...
-        'psand',psand,'pmud',pmud,'pgravel',pgravel);
-    
-%     figure;
-%     plot(time,U(px,:))
-%     
-%     figure;
-%     plot(time,sal);
-%     grid on;
-%     
-%     figure;
-%     plot(time,qtotsandx);
-
     salmean(px) = mean(sal);
-
+    
 end
 
-    
+
 TP=trapz(time(end-Nsteps:end),abs(Q(2,end-Nsteps:end)))/2;      % this calculates the the tidal prism.
 
 %%
+% close all;
 figure;
-subplot(4,1,1);
-plot(x,0.5.*B,'b-')
+figsize = [0 0 5.9 10];     % set figure size to 5.9 inch x 2.95 inch = 15 cm x 7.5 cm
+set(gcf,'PaperOrientation','portrait','PaperUnits','inches' ,'PaperPosition',figsize);
+subplot(5,1,1);
+plot(x./1000,0.5.*B,'b-')
 hold on;
-plot(x,-0.5.*B,'b-')
-% axis equal;
+plot(x./1000,-0.5.*B,'b-')
 grid on;
-subplot(4,1,2);
-plot(x(1:end-1),Z0)
-hold on;
-grid on;
-subplot(4,1,3);
-plot(x(1:end-1),ZM2)
-hold on;
-grid on;
-subplot(4,1,4);
-plot(x(1:end-1),salmean)
+ylim([-300 300])
+title('Channel layout')
+subplot(5,1,2);
+plot(x./1000,-H)
 hold on;
 grid on;
+title('Bed level')
+subplot(5,1,3);
+plot(x(1:end-1)./1000,Z0)
+hold on;
+grid on;
+title('Mean water level')
+subplot(5,1,4);
+plot(x(1:end-1)./1000,ZM2)
+hold on;
+grid on;
+title('Amplitude M2 tide')
+subplot(5,1,5);
+plot(x(1:end-1)./1000,salmean)
+hold on;
+grid on;
+title('Salinity');
+text(1,0,['\copyright Utrecht University ',datestr(now,10)],'fontsize',6,'rotation',90,'unit','n','ver','t');  % add ARCADIS copyright
+annotation('textbox',[1,0.0,0,0],'string',[addslash([mfilename])],'fontsize',4,'horizontalalignment','right','verticalalignment','baseline','color',[0.5 0.5 0.5]);  % add script name
+print('-dpng','-r300',['TidalChannel_Le',num2str(Lb)])  % print figure at 300 dpi

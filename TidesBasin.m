@@ -52,9 +52,9 @@ discharge=1500;             % Constant river discharge at landward boundary.
 % Cd=2.5e-3;               % Drag coefficient
 Cd= 10e-3;
 
-Do = 1500;              % Dispersion coefficient at mouth (range of 500 to 1500 )
+Do = 2500;              % Dispersion coefficient at mouth (range of 500 to 1500 )
 So = 25;                % Salinity at mouth (kg/m3)
-Tlws = 0;               % Time at which low water slack occurs (see tidal velocity plot)
+Tlws = 600;               % Time at which low water slack occurs (see tidal velocity plot)
 
 g = 9.81;               % acceleration of gravity (m/s^2)
 
@@ -122,16 +122,21 @@ xlim([0 50000]);
 
 
 % Boundary conditions
-% Z(1,:)=M2amp*sin(2*pi*time/Tm2);          % prescribed water levels
-load('c:\Users\grasmeijerb\Documents\anaconda\CoastalEngineeringTools\TidalChannel\tidal_predictions_from_rws_getij_nl.mat');
-mytime = (tide.datenum-tide.datenum(1)).*24*3600;
-myz = tide.zwl;
-Z(1,:) = interp1(mytime,myz,time);
+Z(1,:)=M2amp*sin(2*pi*time/Tm2);          % prescribed water levels
+% load('c:\Users\grasmeijerb\Documents\anaconda\CoastalEngineeringTools\TidalChannel\tidal_predictions_from_rws_getij_nl.mat');
+% mytime = (tide.datenum-tide.datenum(1)).*24*3600;
+% myz = tide.zwl;
+% Z(1,:) = interp1(mytime,myz,time);
+
 Q(Nx,:)=-discharge;                      % river discharge; most often river discharge is taken zero.
+
+[Z2,U2,A2,P2] = TidesInChannel;
 
 %%
 figure;
 plot(time,Z(1,:));
+hold on;
+plot(time,Z2(1,:));
 %%
 
 courant=sqrt(9.8*max(H))*deltaT/deltaX;
@@ -290,36 +295,49 @@ TP=trapz(time(end-Nsteps:end),abs(Q(2,end-Nsteps:end)))/2;      % this calculate
 
 %%
 % close all;
+xmaxplot = 40;
 figure;
-figsize = [0 0 5.9 10];     % set figure size to 5.9 inch x 2.95 inch = 15 cm x 7.5 cm
+figsize = [0 0 5.9 5.9];     % set figure size to 5.9 inch x 2.95 inch = 15 cm x 7.5 cm
 set(gcf,'PaperOrientation','portrait','PaperUnits','inches' ,'PaperPosition',figsize);
 subplot(5,1,1);
 plot(x./1000,0.5.*B,'b-')
 hold on;
 plot(x./1000,-0.5.*B,'b-')
 grid on;
-ylim([-300 300])
+xlim([0 xmaxplot]);
+ylim([-300 300]);
+set(gca,'fontsize',7);
 title('Channel layout')
 subplot(5,1,2);
 plot(x./1000,-H)
 hold on;
 grid on;
-title('Bed level')
+xlim([0 xmaxplot]);
+set(gca,'fontsize',7);
+title('Bed level');
 subplot(5,1,3);
 plot(x(1:end-1)./1000,Z0)
 hold on;
 grid on;
-title('Mean water level')
+xlim([0 xmaxplot]);
+set(gca,'fontsize',7);
+title('Mean water level');
 subplot(5,1,4);
-plot(x(1:end-1)./1000,ZM2)
+plot(x(1:end-1)./1000,ZM2);
 hold on;
+plot(x(1:end-1)./1000,ZM4);
 grid on;
-title('Amplitude M2 tide')
+xlim([0 xmaxplot]);
+set(gca,'fontsize',7);
+title('Amplitude M2 and M4 tide');
 subplot(5,1,5);
-plot(x(1:end-1)./1000,salmean)
+plot(x(1:end-1)./1000,salmean);
 hold on;
 grid on;
+xlim([0 xmaxplot]);
+set(gca,'fontsize',7);
 title('Salinity');
-text(1,0,['\copyright Utrecht University ',datestr(now,10)],'fontsize',6,'rotation',90,'unit','n','ver','t');  % add ARCADIS copyright
+xlabel('distance along Rotterdam Waterway (km)');
+text(1,0,['\copyright Utrecht University ',datestr(now,10)],'fontsize',5,'rotation',90,'unit','n','ver','t');  % add ARCADIS copyright
 annotation('textbox',[1,0.0,0,0],'string',[addslash([mfilename])],'fontsize',4,'horizontalalignment','right','verticalalignment','baseline','color',[0.5 0.5 0.5]);  % add script name
 print('-dpng','-r300',['TidalChannel_Le',num2str(Lb)])  % print figure at 300 dpi

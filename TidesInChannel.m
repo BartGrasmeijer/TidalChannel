@@ -104,14 +104,13 @@ g = 9.81;
 
 %% start running
 
-Nt=length(OPT.time);
-
 global wn
 
 wn(1)=2*pi/OPT.Tm2;
 wn(2)=2*wn(1);
 wn(3)=3*wn(1);
 
+time = OPT.time;
 deltaT = OPT.deltaT;
 deltaX = OPT.deltaX;
 Lbasin = OPT.Lbasin;
@@ -127,6 +126,7 @@ So = OPT.So;
 
 x=0:deltaX:Lbasin;
 Nx=length(x);
+Nt=length(time);
 
 Z=zeros(Nx-1,Nt);           % Z points shifted half a grid point to the right with respect to Q points. we start with Q point, therefore 1 Z point less than Q points.
 Q=zeros(Nx,Nt);
@@ -137,6 +137,7 @@ PG=zeros(Nx,Nt);
 Fric=zeros(Nx,Nt);
 
 myHm0(1:Nt) = 0.001;          % wave height;
+Z(1,:)=OPT.Z(1,:);
 
 courant=sqrt(9.8*max(OPT.H))*OPT.deltaT/OPT.deltaX;
 
@@ -175,3 +176,7 @@ else
     Lsmax = Le;
 end
 
+figure;
+plot(time,Z(1,:));
+hold on;
+% plot(time,Z2(1,:));

@@ -1,4 +1,4 @@
-function [Z,U,A,P] = TidesInChannel(varargin)
+function [Z1,U,A,P] = TidesInChannel(varargin)
 %TIDESINCHANNELS is a 1D model that computes tidal propagation in a tidal
 % channel
 %
@@ -74,9 +74,9 @@ OPT.Do = 2500;              % Dispersion coefficient at mouth (range of 500 to 1
 OPT.So = 25;                % Salinity at mouth (kg/m3)
 OPT.Tlws = 600;               % Time at which low water slack occurs (see tidal velocity plot)
 OPT.Tm2=12*3600+25*60;      % M2 tidal period in seconds
-OPT.time=0:OPT.deltaT:30*OPT.Tm2;    % time in seconds
+OPT.time=0:OPT.deltaT:60*OPT.Tm2;    % time in seconds
 
-OPT.Z(1,:)=OPT.M2amp*sin(2*pi*OPT.time/OPT.Tm2);          % prescribed water levels
+OPT.Z1(1,:)=OPT.M2amp*sin(2*pi*OPT.time/OPT.Tm2);          % prescribed water levels
 
 x=0:OPT.deltaX:OPT.Lbasin;
 Nx = length(x);
@@ -128,7 +128,7 @@ x=0:deltaX:Lbasin;
 Nx=length(x);
 Nt=length(time);
 
-Z=zeros(Nx-1,Nt);           % Z points shifted half a grid point to the right with respect to Q points. we start with Q point, therefore 1 Z point less than Q points.
+Z1=zeros(Nx-1,Nt);           % Z points shifted half a grid point to the right with respect to Q points. we start with Q point, therefore 1 Z point less than Q points.
 Q=zeros(Nx,Nt);
 A=(OPT.B.*OPT.H)'*ones(1,Nt);       % A at Q points
 P=OPT.B'*ones(1,Nt);            % Wetted perimeter at Q points.
@@ -137,27 +137,27 @@ PG=zeros(Nx,Nt);
 Fric=zeros(Nx,Nt);
 
 myHm0(1:Nt) = 0.001;          % wave height;
-Z(1,:)=OPT.Z(1,:);
+Z1(1,:)=OPT.Z1(1,:);
 
 courant=sqrt(9.8*max(OPT.H))*OPT.deltaT/OPT.deltaX;
 
 for pt=1:Nt-1
     for px=2:Nx-1
-        Z(px,pt+1)=Z(px,pt)-(deltaT/(0.5*(B(px)+B(px+1))))*(Q(px+1,pt)-Q(px,pt))/deltaX;
+        Z1(px,pt+1)=Z1(px,pt)-(deltaT/(0.5*(B(px)+B(px+1))))*(Q(px+1,pt)-Q(px,pt))/deltaX;
     end
     for px=2:Nx-1
-        A(px,pt+1)=B(px)*(H(px)+0.5*Z(px,pt+1)+0.5*Z(px-1,pt+1));           % A at Q points
-        P(px,pt+1)=B(px)+2*H(px)+Z(px,pt+1) +Z(px-1,pt+1);                  % P at Q points
+        A(px,pt+1)=B(px)*(H(px)+0.5*Z1(px,pt+1)+0.5*Z1(px-1,pt+1));           % A at Q points
+        P(px,pt+1)=B(px)+2*H(px)+Z1(px,pt+1) +Z1(px-1,pt+1);                  % P at Q points
     end
     for px=2:Nx-1
         Q(px,pt+1)=Q(px,pt) ...                                            % Inertia.
-            -9.81*A(px,pt+1)*(deltaT/deltaX)*(Z(px,pt+1)-Z(px-1,pt+1)) ...  % Pressure gradient
+            -9.81*A(px,pt+1)*(deltaT/deltaX)*(Z1(px,pt+1)-Z1(px-1,pt+1)) ...  % Pressure gradient
             -Cd*deltaT*abs(Q(px,pt))*Q(px,pt)*P(px,pt)/(A(px,pt)*A(px,pt)); % Friction
         Inertia(px,pt+1)=(Q(px,pt+1)-Q(px,pt))/deltaT;
-        PG(px,pt+1)=-9.81*A(px,pt+1)*(1/deltaX)*(Z(px,pt+1)-Z(px-1,pt+1));
+        PG(px,pt+1)=-9.81*A(px,pt+1)*(1/deltaX)*(Z1(px,pt+1)-Z1(px-1,pt+1));
         Fric(px,pt+1)=-Cd*abs(Q(px,pt))*Q(px,pt)*P(px,pt)/(A(px,pt)*A(px,pt));
     end
-    Q(1,pt+1)=Q(2,pt+1)+B(1)*deltaX*(Z(1,pt+1)-Z(1,pt))/deltaT;
+    Q(1,pt+1)=Q(2,pt+1)+B(1)*deltaX*(Z1(1,pt+1)-Z1(1,pt))/deltaT;
 end
 
 U=Q./A;         % Flow velocity in m/s
@@ -176,7 +176,7 @@ else
     Lsmax = Le;
 end
 
-figure;
-plot(time,Z(1,:));
-hold on;
+% figure;
+% plot(time,Z(1,:));
+% hold on;
 % plot(time,Z2(1,:));

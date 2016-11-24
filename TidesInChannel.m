@@ -1,11 +1,11 @@
 function [Z1,U,A,P] = TidesInChannel(varargin)
-%TIDESINCHANNELS is a 1D model that computes tidal propagation in a tidal
+%TIDESINCHANNEL is a 1D model that computes tidal propagation in a tidal
 % channel
 %
 %   More detailed description goes here.
 %
 %   Syntax:
-%   varargout = Untitled(varargin)
+%   [Z2,U2,A2,P2] = TidesInChannel('H',H,'Z1',Z1);
 %
 %   Input: For <keyword,value> pairs call Untitled() without arguments.
 %   varargin  =
@@ -14,18 +14,18 @@ function [Z1,U,A,P] = TidesInChannel(varargin)
 %   varargout =
 %
 %   Example
-%   Untitled
+%   [Z2,U2,A2,P2] = TidesInChannel('H',H,'Z1',Z1);
 %
-%   See also
+%   See also t_tide
 
 %% Copyright notice
 %   --------------------------------------------------------------------
-%   Copyright (C) 2016 <COMPANY>
-%       grasmeijerb
+%   Copyright (C) 2016 Bart Grasmeijer
+%       Bart Grasmeijer
 %
-%       <EMAIL>
+%       bartgrasmeijer@gmail.com
 %
-%       <ADDRESS>
+%       Meppel
 %
 %   This library is free software: you can redistribute it and/or modify
 %   it under the terms of the GNU General Public License as published by

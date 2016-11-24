@@ -437,7 +437,7 @@ for px = 1:Nx-1
         if strcmp(NAME(j,:),'M2  ')
             M2_obs3.amp(px) = TIDECON(j,1);
             M2_obs3.amp95(px) = TIDECON(j,2);
-            M2_obs.phase(px) = TIDECON(j,3);
+            M2_obs3.phase(px) = TIDECON(j,3);
         end
         if strcmp(NAME(j,:),'M4  ')
             M4_obs3.amp(px) = TIDECON(j,1);
@@ -463,7 +463,7 @@ xmaxplot = 70;
 figure;
 figsize = [0 0 5.9 7];     % set figure size to 5.9 inch x 2.95 inch = 15 cm x 7.5 cm
 set(gcf,'PaperOrientation','portrait','PaperUnits','inches' ,'PaperPosition',figsize);
-subplot(6,1,1);
+subplot(7,1,1);
 plot(x./1000,0.5.*B,'b-')
 hold on;
 plot(x./1000,-0.5.*B,'b-')
@@ -472,44 +472,56 @@ xlim([0 xmaxplot]);
 ylim([-300 300]);
 set(gca,'fontsize',7);
 title('Channel layout')
-subplot(6,1,2);
+subplot(7,1,2);
 plot(x./1000,-H,'b-')
 hold on;
-plot(x./1000,-H2,'r-')
+plot(x./1000,-H2,'r--')
 grid on;
 legend('present','deepened','location','best')
 xlim([0 xmaxplot]);
 set(gca,'fontsize',7);
 title('Bed level');
-subplot(6,1,3);
+subplot(7,1,3);
 plot(x(1:end-1)./1000,Z0)
 hold on;
 grid on;
 xlim([0 xmaxplot]);
 set(gca,'fontsize',7);
 title('Mean water level');
-subplot(6,1,4);
+subplot(7,1,4);
 plot(x(1:end-1)./1000,M2_obs.amp,'b-');
 hold on;
-plot(x(1:end-1)./1000,M4_obs.amp,'b--');
-legend('M2 present','M2 deepened','location','best')
-plot(x(1:end-1)./1000,M2_obs3.amp,'r-');
-hold on;
+plot(x(1:end-1)./1000,M2_obs3.amp,'r--');
+set(gca,'fontsize',7);
+leg = legend('M2 present','M2 deepened','location','southwest');
+set(leg,'fontsize',5);
+plot(x(1:end-1)./1000,M4_obs.amp,'b-');
 plot(x(1:end-1)./1000,M4_obs3.amp,'r--');
 grid on;
 xlim([0 xmaxplot]);
-set(gca,'fontsize',7);
 title('Amplitude M2 and M4 tide');
-subplot(6,1,5);
+subplot(7,1,5);
 plot(x(1:end-1)./1000,M2_obs3.amp-M2_obs.amp);
 hold on;
 plot(x(1:end-1)./1000,M4_obs3.amp-M4_obs.amp);
 set(gca,'fontsize',7);
-legend('effect M2','effect M4','location','best')
+ylim([-0.02 0.02])
+leg = legend('effect M2','effect M4','location','southwest');
+set(leg,'fontsize',5);
 title('Effect of deepening on tidal amplitude');
 grid on;
 xlim([0 xmaxplot]);
-subplot(6,1,6);
+subplot(7,1,6);
+plot(x(1:end-1)./1000,2.*M2_obs.phase-M4_obs.phase,'b-');
+hold on;
+plot(x(1:end-1)./1000,2.*M2_obs3.phase-M4_obs3.phase,'r--');
+set(gca,'fontsize',7);
+leg = legend('present','deepened','location','southwest');
+set(leg,'fontsize',5);
+title('Effect of deepening on tidal asymmetry (2\phi_{M2}-\phi_{M4})');
+grid on;
+xlim([0 xmaxplot]);
+subplot(7,1,7);
 plot(x(1:end-1)./1000,salmean);
 hold on;
 grid on;
@@ -520,5 +532,3 @@ xlabel('distance along Rotterdam Waterway (km)');
 text(1,0,['\copyright Utrecht University ',datestr(now,10)],'fontsize',5,'rotation',90,'unit','n','ver','t');  % add ARCADIS copyright
 annotation('textbox',[1,0.0,0,0],'string',[addslash([mfilename])],'fontsize',4,'horizontalalignment','right','verticalalignment','baseline','color',[0.5 0.5 0.5]);  % add script name
 print('-dpng','-r300',['TidalChannel_Le',num2str(Lb)])  % print figure at 300 dpi
-
-for the provision of consultancy services for dredging and channel design optimization studies

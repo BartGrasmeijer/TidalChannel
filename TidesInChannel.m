@@ -61,7 +61,7 @@ function [Z1,U,A,P] = TidesInChannel(varargin)
 %%
 OPT.deltaT=60;              % time step in seconds. Choose appropriate time step yourself based on Courant number.
 OPT.deltaX=1000;             % spatial step in meters
-OPT.Lbasin=300e3;           % Length of the basin or estuary in meters
+OPT.Lbasin=290e3;           % Length of the basin or estuary in meters
 OPT.Lb = 200e4;                  % e-folding length scale for width.
 OPT.Ld = 100e4;                  % e-folding length scale for depth.
 OPT.B0=500;                  % Width of the basin in meters at seaward side.
@@ -74,7 +74,7 @@ OPT.Do = 2500;              % Dispersion coefficient at mouth (range of 500 to 1
 OPT.So = 25;                % Salinity at mouth (kg/m3)
 OPT.Tlws = 600;               % Time at which low water slack occurs (see tidal velocity plot)
 OPT.Tm2=12*3600+25*60;      % M2 tidal period in seconds
-OPT.time=0:OPT.deltaT:60*OPT.Tm2;    % time in seconds
+OPT.time=0:OPT.deltaT:16*OPT.Tm2;    % time in seconds
 
 OPT.Z1(1,:)=OPT.M2amp*sin(2*pi*OPT.time/OPT.Tm2);          % prescribed water levels
 
